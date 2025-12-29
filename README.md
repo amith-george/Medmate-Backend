@@ -1,4 +1,7 @@
+This is my project overview, study this and tell me how and where should I start from:
+
 🔍 Project Overview
+
 MedMate is a mobile health application built using React Native with a Node.js backend and MongoDB database, designed specifically for individuals on long-term or routine medications. Its primary goal is to improve medication adherence by automating reminders, monitoring stock and expiry, and keeping caregivers informed—all while minimizing complexity for the end user.
 
 Users can add medicines either manually or by uploading a prescription image, from which the system extracts medicine names, dosage details, and duration using OCR (Optical Character Recognition) and text parsing. Once added, each medicine entry includes a custom time period, and reminders will repeat daily or as configured, continuing until the medicine stock runs out.
@@ -12,3 +15,102 @@ For caregiver support, MedMate sends out a weekly summary report via email detai
 To enhance user experience and engagement, the app integrates an AI chatbot that answers general health-related queries. While it is not a substitute for professional medical advice, the chatbot provides information on symptoms and medications using pre-trained models or APIs like Gemini. A disclaimer is shown to remind users to always consult healthcare professionals for serious conditions.
 
 The app will also feature offline support, a clean UI with dark mode, and an emphasis on usability and accessibility, especially for older adults and caregivers.
+
+And this is my backend folder structure as well:
+
+MEDMATE-SERVER/
+├── config/
+│   └── firebase-config.js
+├── controllers/
+│   ├── caregiver.controller.js
+│   ├── logs.controller.js
+│   ├── medicine.controller.js
+│   ├── schedule.controller.js
+│   └── user.controller.js
+├── database/
+│   └── connect.js
+├── middleware/
+│   └── authMiddleware.js
+├── models/
+│   ├── caregiver.model.js
+│   ├── logs.model.js
+│   ├── medicine.model.js
+│   ├── schedule.model.js
+│   └── user.model.js
+├── node_modules/
+├── routes/
+│   ├── caregiver.routes.js
+│   ├── logs.routes.js
+│   ├── medicine.routes.js
+│   ├── schedule.routes.js
+│   └── user.routes.js
+├── utils/
+├── .env
+├── .gitignore
+├── firebase-service-account-key.json
+├── package-lock.json
+├── package.json
+├── README.md
+└── server.js
+
+And this is my frontend folder structure:
+
+MEDMATE/
+├── .expo/
+├── .vscode/
+├── android/
+├── app/
+├── config/
+├── ios/
+├── node_modules/
+├── scripts/
+├── src/
+│   ├── api/
+│   │   └── axiosConfig.js
+│   ├── assets/
+│   │   └── avatar/
+│   │       ├── boy1.png
+│   │       ├── boy2.png
+│   │       ├── boy3.png
+│   │       ├── girl1.png
+│   │       ├── girl2.png
+│   │       └── girl3.png
+│   ├── components/
+│   │   ├── AddMedButton.js        
+│   │   └── AnimatedBackground.js   
+│   ├── constants/
+│   │   └── colors.js              
+│   ├── context/
+│   ├── hooks/
+│   │   └── useCurrentTime.js       
+│   ├── navigation/
+│   │   ├── AppNavigator.js
+│   │   └── TabNavigator.js       
+│   ├── screens/
+│   │   ├── HistoryScreen.js       
+│   │   ├── HomeScreen.js
+│   │   ├── IntroScreen.js          
+│   │   ├── LoginScreen.js
+│   │   ├── OTPScreen.js
+│   │   ├── PillsScreen.js       
+│   │   ├── ProfileScreen.js       
+│   │   └── RegisterScreen.js
+│   ├── state/
+│   │   ├── authSlice.js
+│   │   ├── medicineSlice.js        
+│   │   ├── scheduleSlice.js        
+│   │   └── store.js
+│   └── utils/
+│       ├── avatarUtils.js          
+│       └── validation.js           
+├── App.js
+├── .gitignore
+├── app.json
+├── eas.json
+├── eslint.config.js
+├── expo-env.d.ts
+├── index.js
+├── package-lock.json
+├── package.json
+├── README.md
+└── tsconfig.json

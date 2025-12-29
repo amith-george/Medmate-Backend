@@ -14,22 +14,44 @@ const caregiverSchema = mongoose.Schema({
     type: String, // e.g., "Son", "Spouse", "Nurse".
   },
   email: {
-    type: String, // Required for email alerts and weekly summaries.
+    type: String,
+    required: true,
   },
   phone: {
-    type: String, // Required for SMS alerts.
+    type: String,
+    required: true,
   },
-  // A flag to control whether this caregiver receives the instant alerts for missed doses.
-  receivesRealtimeAlerts: {
+  isEmailVerified: {
     type: Boolean,
-    default: true,
+    default: false,
+  },
+  isPhoneVerified: {
+    type: Boolean,
+    default: false,
   },
   // A flag to control whether this caregiver receives the weekly summary report.
   receivesWeeklySummary: {
     type: Boolean,
     default: true,
   },
+  alertPreferences: {
+    missedDose: { 
+      type: Boolean, 
+      default: true 
+    }, // Alert when dose is missed (with time info)
+    lowStock: { 
+      type: Boolean, 
+      default: true 
+    }, // Alert when medicine stock is low
+    expiryAlert: { 
+      type: Boolean, 
+      default: true 
+    }, // Alert when medicine is about to expire
+  }
 });
+
+// Add compound unique index to prevent duplicate caregivers for the same user
+caregiverSchema.index({ user: 1, email: 1 }, { unique: true });
 
 const Caregiver = mongoose.model('Caregiver', caregiverSchema);
 module.exports = Caregiver;
