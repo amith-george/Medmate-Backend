@@ -55,12 +55,14 @@ MEDMATE-SERVER/
 
 And this is my frontend folder structure:
 
-MEDMATE/
+MMEDMATE/
 ├── .expo/
 ├── .vscode/
 ├── android/
 ├── app/
 ├── config/
+│   ├── google-services.json
+│   └── GoogleService-Info.plist
 ├── ios/
 ├── node_modules/
 ├── scripts/
@@ -68,41 +70,45 @@ MEDMATE/
 │   ├── api/
 │   │   └── axiosConfig.js
 │   ├── assets/
-│   │   └── avatar/
-│   │       ├── boy1.png
-│   │       ├── boy2.png
-│   │       ├── boy3.png
-│   │       ├── girl1.png
-│   │       ├── girl2.png
-│   │       └── girl3.png
 │   ├── components/
-│   │   ├── AddMedButton.js        
-│   │   └── AnimatedBackground.js   
+│   │   ├── AddMedicineModal.js
+│   │   ├── AnimatedBackground.js
+│   │   ├── haptic-tab.tsx
+│   │   ├── MedicineForm.js
+│   │   ├── ScheduleForm.js
+│   │   ├── themed-text.tsx
+│   │   └── themed-view.tsx
 │   ├── constants/
-│   │   └── colors.js              
+│   │   ├── colors.js
+│   │   └── theme.ts
 │   ├── context/
 │   ├── hooks/
-│   │   └── useCurrentTime.js       
+│   │   ├── use-color-scheme.ts
+│   │   ├── use-color-scheme.web.ts
+│   │   ├── use-theme-color.ts
+│   │   └── useCurrentTime.js
 │   ├── navigation/
 │   │   ├── AppNavigator.js
-│   │   └── TabNavigator.js       
+│   │   └── TabNavigator.js
 │   ├── screens/
-│   │   ├── HistoryScreen.js       
+│   │   ├── HistoryScreen.js
 │   │   ├── HomeScreen.js
-│   │   ├── IntroScreen.js          
+│   │   ├── IntroScreen.js
 │   │   ├── LoginScreen.js
+│   │   ├── MedicineDetailScreen.js
 │   │   ├── OTPScreen.js
-│   │   ├── PillsScreen.js       
-│   │   ├── ProfileScreen.js       
+│   │   ├── PillsScreen.js
+│   │   ├── ProfileScreen.js
 │   │   └── RegisterScreen.js
 │   ├── state/
 │   │   ├── authSlice.js
-│   │   ├── medicineSlice.js        
-│   │   ├── scheduleSlice.js        
+│   │   ├── logsSlice.js
+│   │   ├── medicineSlice.js
+│   │   ├── scheduleSlice.js
 │   │   └── store.js
 │   └── utils/
-│       ├── avatarUtils.js          
-│       └── validation.js           
+│       ├── avatarUtils.js
+│       └── validation.js
 ├── App.js
 ├── .gitignore
 ├── app.json

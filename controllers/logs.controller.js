@@ -1,13 +1,15 @@
 const DoseLog = require('../models/logs.model.js');
 const Medicine = require('../models/medicine.model.js');
+const Caregiver = require('../models/caregiver.model.js');
+const { sendEmail } = require('../services/notification.service.js');
 const mongoose = require('mongoose');
 
 
-// Record a dose action
+// Record a dose action (Update existing pending log OR create new one)
 const recordDoseAction = async (req, res) => {
-  // Added 'notes' to be captured from the request
   const { medicineId, scheduledTime, status, notes } = req.body;
 
+  // 1. Basic Validation
   if (!medicineId || !scheduledTime || !status) {
     return res.status(400).json({ message: 'Medicine ID, scheduled time, and status are required.' });
   }
@@ -17,32 +19,96 @@ const recordDoseAction = async (req, res) => {
   }
 
   try {
+    // 2. Verify Medicine exists and belongs to user
     const medicine = await Medicine.findOne({ _id: medicineId, user: req.user._id });
     if (!medicine) {
       return res.status(404).json({ message: 'Medicine not found or you are not authorized.' });
     }
 
-    const log = await DoseLog.create({
+    // 3. Try to find an existing 'pending' log first (Prevent Duplicates)
+    // We look for a log for this user+med+time that is currently 'pending'
+    let log = await DoseLog.findOne({
       user: req.user._id,
       medicine: medicineId,
-      scheduledTime,
-      status,
-      notes, 
-      actionTime: new Date(),
+      scheduledTime: new Date(scheduledTime), 
+      status: 'pending' 
     });
 
-    // If the dose was taken, decrement the medicine stock
+    const actionTime = new Date();
+
+    if (log) {
+      // SCENARIO A: Log exists (created by Automation). UPDATE IT.
+      log.status = status;
+      log.notes = notes || log.notes;
+      log.actionTime = actionTime;
+      
+      // If marking as missed manually, set the flag so the watchdog doesn't alert again
+      if (status === 'missed') {
+        log.caregiverNotified = true;
+      }
+      
+      await log.save();
+      console.log(`Updated existing log for ${medicine.name}`);
+    } else {
+      // SCENARIO B: Log doesn't exist. CREATE NEW ONE.
+      log = await DoseLog.create({
+        user: req.user._id,
+        medicine: medicineId,
+        scheduledTime,
+        status,
+        notes,
+        actionTime,
+        caregiverNotified: status === 'missed' // Set true if missed
+      });
+      console.log(`Created new log for ${medicine.name}`);
+    }
+
+    // ---------------------------------------------------------
+    // 4. NEW LOGIC: SEND ALERT IF USER MANUALLY CLICKS "MISSED"
+    // ---------------------------------------------------------
+    if (status === 'missed') {
+      const caregiver = await Caregiver.findOne({ user: req.user._id });
+
+      if (caregiver && caregiver.alertPreferences.missedDose) {
+        const timeString = new Date(scheduledTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        const subject = `⚠️ Missed Dose Reported: ${req.user.name}`;
+        const html = `
+          <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ffcccc; background-color: #fff5f5;">
+            <h2 style="color: #d9534f; margin-top: 0;">User Reported Missed Dose</h2>
+            <p>Hello ${caregiver.name},</p>
+            <p><b>${req.user.name}</b> has manually marked the following medication as <b>MISSED</b> in the app.</p>
+            
+            <div style="background-color: #fff; padding: 15px; border-radius: 5px; border: 1px solid #ddd;">
+              <p>💊 <b>Medicine:</b> ${medicine.name}</p>
+              <p>⏰ <b>Scheduled Time:</b> ${timeString}</p>
+              <p>📝 <b>Reason/Notes:</b> ${notes || "No reason provided."}</p>
+            </div>
+
+            <p>Please check in with them.</p>
+            <p><i>- MedMate Alert System</i></p>
+          </div>
+        `;
+        
+        // Send email without blocking the response
+        sendEmail(caregiver.email, subject, html).catch(err => console.error("Failed to send manual missed email:", err));
+      }
+    }
+    // ---------------------------------------------------------
+
+    // 5. Handle Stock Decrement (Only if taken)
     if (status === 'taken' && medicine.stock > 0) {
       medicine.stock -= 1;
       await medicine.save();
     }
 
     res.status(201).json({
-      message: 'Log created successfully.',
+      message: 'Log recorded successfully.',
       log,
       updatedStock: medicine.stock,
     });
   } catch (error) {
+    console.error("Error in recordDoseAction:", error);
     res.status(500).json({ message: `Server Error: ${error.message}` });
   }
 };

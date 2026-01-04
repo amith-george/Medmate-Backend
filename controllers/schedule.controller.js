@@ -206,7 +206,16 @@ const deleteSchedule = async (req, res) => {
 
     if (schedule) {
       await schedule.deleteOne();
-      res.json({ message: 'Schedule removed successfully.' });
+
+      // 2. CRITICAL FIX: Delete any PENDING logs for this medicine that are in the future
+      await DoseLog.deleteMany({
+        medicine: schedule.medicine,
+        user: req.user._id,
+        status: 'pending',
+        scheduledTime: { $gte: new Date() } // Only delete future logs
+      });
+
+      res.json({ message: 'Schedule and future pending logsremoved successfully.' });
     } else {
       res.status(404).json({ message: 'Schedule not found or user not authorized.' });
     }
