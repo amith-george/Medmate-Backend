@@ -101,54 +101,79 @@ const getScheduleForMedicine = async (req, res) => {
 // Get today's upcoming reminders
 const getTodaysReminders = async (req, res) => {
   try {
-    // Use the user's timezone for accurate calculations
     const timeZone = req.user.timeZone || 'Asia/Kolkata';
     const now = new Date();
 
-    // Get current time and day in user's timezone
+    // Get "HH:mm" for right now
     const currentTime = now.toLocaleTimeString('en-GB', {
       timeZone,
       hour: '2-digit',
       minute: '2-digit',
       hourCycle: 'h23',
     });
-    const todayDay = now.toLocaleDateString('en-US', { timeZone, weekday: 'short' }); // "Mon", "Tue", etc.
+    
+    // Get "Mon", "Tue" etc.
+    const todayDay = now.toLocaleDateString('en-US', { timeZone, weekday: 'short' });
 
     const allSchedules = await Schedule.find({
       user: req.user._id,
       isActive: true,
-      startDate: { $lte: now }, // Schedule must have started
-      $or: [{ endDate: { $exists: false } }, { endDate: { $gte: now } }], // and not ended
+      startDate: { $lte: now }, 
+      $or: [{ endDate: { $exists: false } }, { endDate: { $gte: now } }], 
     }).populate('medicine', 'name dosage stock');
 
     const upcomingReminders = allSchedules
       .map((schedule) => {
         let upcomingTimes = [];
-        let isDueToday = false;
 
         switch (schedule.frequency) {
           case 'daily':
-            isDueToday = true;
+            // Filter existing times that are in the future
+            upcomingTimes = schedule.times.filter((time) => time >= currentTime);
             break;
-          case 'weekly':
-            isDueToday = schedule.daysOfWeek.includes(todayDay);
-            break;
-        }
 
-        if (isDueToday) {
-          upcomingTimes = schedule.times.filter((time) => time >= currentTime);
+          case 'weekly':
+            // Check if today is the correct day, then filter times
+            if (schedule.daysOfWeek.includes(todayDay)) {
+              upcomingTimes = schedule.times.filter((time) => time >= currentTime);
+            }
+            break;
+
+          case 'interval':
+            // --- NEW LOGIC FOR INTERVAL ---
+            if (schedule.times.length > 0 && schedule.intervalHours) {
+              const [startH, startM] = schedule.times[0].split(':').map(Number);
+              let currentH = startH;
+              
+              // Generate all interval slots for "Today" starting from the anchor time
+              // Example: Start 17:00, Interval 5 -> Generated: 17:00, 22:00
+              while (currentH < 24) {
+                const timeStr = `${String(currentH).padStart(2, '0')}:${String(startM).padStart(2, '0')}`;
+                
+                // Only keep times that haven't passed yet
+                if (timeStr >= currentTime) {
+                  upcomingTimes.push(timeStr);
+                }
+                
+                // Jump forward by the interval
+                currentH += schedule.intervalHours;
+              }
+            }
+            break;
+            
+          // Add 'custom' logic here later if needed
         }
 
         if (upcomingTimes.length > 0) {
           return {
             ...schedule.toObject(),
-            times: upcomingTimes, // Only show upcoming times for today
+            times: upcomingTimes, // Override with the filtered/generated list
           };
         }
-        return null; // Return null if no reminders for today
+        return null; // No reminders for this specific schedule today
       })
-      .filter((schedule) => schedule !== null) // Filter out the nulls
-      .sort((a, b) => a.times[0].localeCompare(b.times[0])); // Sort by the next upcoming time
+      .filter((schedule) => schedule !== null)
+      .sort((a, b) => a.times[0].localeCompare(b.times[0]));
 
     res.json(upcomingReminders);
   } catch (error) {

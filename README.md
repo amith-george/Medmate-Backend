@@ -44,6 +44,9 @@ MEDMATE-SERVER/
 │   ├── medicine.routes.js
 │   ├── schedule.routes.js
 │   └── user.routes.js
+├── services/
+│   ├── cron.service.js
+│   └── notification.service.js
 ├── utils/
 ├── .env
 ├── .gitignore
@@ -52,6 +55,7 @@ MEDMATE-SERVER/
 ├── package.json
 ├── README.md
 └── server.js
+
 
 And this is my frontend folder structure:
 

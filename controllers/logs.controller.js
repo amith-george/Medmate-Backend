@@ -135,10 +135,16 @@ const getLogsForMedicine = async (req, res) => {
 };
 
 
-// Get recent 30 logs for a user
+// --------------------------------------------------------------
+// UPDATED: Get recent 30 logs (EXCLUDING PENDING)
+// --------------------------------------------------------------
 const getRecentLogs = async (req, res) => {
   try {
-    const logs = await DoseLog.find({ user: req.user._id })
+    const logs = await DoseLog.find({ 
+      user: req.user._id,
+      // Only get logs where status is 'taken' OR 'missed'
+      status: { $in: ['taken', 'missed'] } 
+    })
       .sort({ scheduledTime: -1 })
       .limit(30)
       .populate('medicine', 'name');

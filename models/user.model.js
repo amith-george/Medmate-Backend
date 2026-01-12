@@ -11,21 +11,28 @@ const userSchema = mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
+      required: [true, 'Name is required'],
+      maxLength: [15, 'Name cannot exceed 15 characters'],
+      match: [/^[a-zA-Z\s]+$/, 'Name can only contain letters and spaces'],
     },
     email: {
       type: String,
       unique: true,
       sparse: true,
+      match: [
+        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 
+        'Please provide a valid email address'
+      ],
     },
     password: {
       type: String,
-      required: true,
+      required: [true, 'Password is required'],
     },
     phone: {
       type: String,
-      required: true,
+      required: [true, 'Phone number is required'],
       unique: true,
+      match: [/^(\+91)?\d{10}$/, 'Phone number must be a valid 10-digit number (can include +91)'], 
     },
     avatar: {
       type: String,
@@ -44,6 +51,20 @@ const userSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    preferences: {
+      weeklyReport: {
+        type: Boolean,
+        default: false,
+      },
+      lowStockExpiryAlerts: {
+        type: Boolean,
+        default: false,
+      },
+      monthlyReport: {
+        type: Boolean,
+        default: false,
+      },
+    },
   },
   {
     timestamps: true,
@@ -59,26 +80,20 @@ userSchema.pre('save', async function (next) {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-// Before a user is deleted, this function will execute.
+// Cascade delete middleware
 userSchema.pre('deleteOne', { document: true, query: false }, async function (next) {
   try {
-    // 'this' refers to the user document being removed.
     const userId = this._id;
-
-    // Delete all documents in other collections that reference this user.
     await Medicine.deleteMany({ user: userId });
     await Schedule.deleteMany({ user: userId });
     await DoseLog.deleteMany({ user: userId });
     await Caregiver.deleteMany({ user: userId });
-    
-    next(); // Proceed with deleting the user document itself.
+    next();
   } catch (error) {
-    next(error); // Pass any errors to the next middleware.
+    next(error);
   }
 });
 
-
-// Method to compare entered password with hashed password
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
