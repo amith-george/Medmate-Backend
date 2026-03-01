@@ -90,6 +90,7 @@ const loginUser = async (req, res) => {
         phone: user.phone,
         avatar: user.avatar,
         preferences: user.preferences,
+        isEmailVerified: user.isEmailVerified,
         token: generateToken(user._id),
       });
     } else {
