@@ -1,5 +1,3 @@
----
-
 ### 2. Backend Repository (`README.md`)
 
 ```markdown
