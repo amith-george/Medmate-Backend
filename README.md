@@ -1,6 +1,3 @@
-### 2. Backend Repository (`README.md`)
-
-```markdown
 # MedMate 💊 - Backend API
 
 This is the Node.js and Express API that powers the MedMate mobile application. It handles user authentication, complex scheduling logic, automated notifications, caregiver email/SMS digests, and the AI-powered prescription transcription service.
